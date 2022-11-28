@@ -3,11 +3,18 @@
 // read in env settings
 require("dotenv").config();
 var schedule = require("node-schedule");
+var yargs = require("yargs");
+
+const options = yargs
+.usage("Usage: --sync <Identity provider name>")
+.option('sync', {description: `Use 'azure' for MS Azure AD and 'okta' for Okta IdP`, demandOption: true})
+.argv;
 
 let inactiveUsers = [];
-const fetch = require("./fetch");
-const auth = require("./auth");
 const sen = require("./sen");
+const azure = require("./providers/azure");
+const okta = require("./providers/okta");
+const logger = require("./logger/logger");
 
 async function main() {
   const senSync = await sen.getSENSession(
@@ -16,45 +23,36 @@ async function main() {
     process.env.SEN_PWD
   );
 
-  // here we get an access token
-  const authResponse = await auth.getToken(auth.tokenRequest);
-
   let senUsers = senSync.filter((element) => {
     return element.email.trim() !== "";
   });
 
-  for (let user in senUsers) {
-    console.clear();
-    console.log(`Processing user ${+user + 1} of ${senUsers.length}`);
-    try {
-      //add the SEN params to the API call
-      auth.apiConfig.uri =
-        process.env.GRAPH_ENDPOINT +
-        `/v1.0/users?$filter=mail eq '${senUsers[user].email}'&$select=DisplayName,accountEnabled`;
-
-
-      // call the web API with the access token
-      const users = await fetch.callApi(
-        auth.apiConfig.uri,
-        authResponse.accessToken
-      );
-
-      if (!users.value[0].accountEnabled) {
-        console.log("Inactive account found");
-        inactiveUsers.push(senUsers[user]);
-      }
-    } catch (error) {
-      console.log("User doesn't exist in Azure AD");
-    }
+  switch (yargs.argv['sync']) {
+    case "azure":
+      await azure.senAzurePrep(senUsers);
+      break;
+    case "okta":
+      await okta.senOktaPrep(senUsers);
+      break;
+    default:
+      throw "Identity provider is not selected";
   }
 
   if (inactiveUsers.length > 0) {
     console.log(`Deactivating ${inactiveUsers.length} user(s)...`);
+    await sen.deactivateUsers(process.env.SEN_URL, inactiveUsers);
+  } else {
+    console.log('SAP Enable Now accounts status is actual.')
   }
 
-  await sen.deactivateUsers(process.env.SEN_URL, inactiveUsers);
+  logger.writeLog(inactiveUsers);
+
 }
 
-const job = schedule.scheduleJob({ hour: 23, minute: 21 }, () => {
-  main();
-});
+main();
+
+// const job = schedule.scheduleJob({ hour: 19, minute: 40 }, () => {
+//   main();
+// });
+
+exports.inactiveUsers = inactiveUsers;

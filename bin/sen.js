@@ -10,7 +10,7 @@ async function getSENSession(senUrl, userName, password) {
   });
 
   jSessionId = response.headers.get("set-cookie")[0].split(";")[0].slice(11);
-  console.log(jSessionId);
+  console.log('Successfully authenticated in the SAP Enable Now Manager');
 
   let getUsersUri = senUrl + "!/user";
 
@@ -47,6 +47,9 @@ async function deactivateUsers(senUrl, senUsers) {
           Cookie: `JSESSIONID=${jSessionId}`,
         },
       });
+
+      user.date = new Date().toUTCString();
+      
     } catch (e) {
       console(e);
     }
