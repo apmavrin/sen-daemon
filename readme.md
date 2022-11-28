@@ -18,4 +18,4 @@ Requirements:
 <li>MS Visual Studio Code or another IDE</li>
   </ol>
   
-  <p> Implementation guide please find on the <a href="https://blogs.sap.com/2022/11/08/keeping-sap-enable-now-sso-accounts-synced-with-azure-ad/" target="_blank">SAP Enable Now Community</a>.
+  <p> Complete implementation guides for <a href="https://blogs.sap.com/2022/11/08/keeping-sap-enable-now-sso-accounts-synced-with-azure-ad/" target="_blank">Azure AD</a> and <a href="https://blogs.sap.com/2022/11/28/keeping-sap-enable-now-sso-accounts-synced-with-okta-idp/ target="_blank">Okta IdP</a> please find on the SAP Enable Now Community.
