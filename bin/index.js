@@ -49,10 +49,8 @@ async function main() {
 
 }
 
-main();
-
-// const job = schedule.scheduleJob({ hour: 19, minute: 40 }, () => {
-//   main();
-// });
+const job = schedule.scheduleJob({ hour: 02, minute: 00 }, () => {
+  main();
+});
 
 exports.inactiveUsers = inactiveUsers;
